@@ -49,25 +49,6 @@ function closeVideo() {
   if (lastFocused) lastFocused.focus();
 }
 
-document.querySelectorAll('.video-frame').forEach((frame) => {
-  frame.setAttribute('role', 'button');
-  frame.setAttribute('tabindex', '0');
-  frame.setAttribute('aria-label', `Reproducir vídeo: ${frame.dataset.title || 'vídeo'}`);
-
-  const play = () => {
-    const id = frame.dataset.video;
-    if (id) openVideo(id);
-  };
-
-  frame.addEventListener('click', play);
-  frame.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      play();
-    }
-  });
-});
-
 modalClose.addEventListener('click', closeVideo);
 videoModal.addEventListener('click', (event) => {
   if (event.target === videoModal) closeVideo();
@@ -75,6 +56,133 @@ videoModal.addEventListener('click', (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !videoModal.hidden) closeVideo();
 });
+
+// --- Formularios: envío a la API -------------------------------------------
+
+/**
+ * Envía un formulario a la API y refleja el resultado en la interfaz.
+ * @param {HTMLFormElement} form
+ * @param {string} endpoint
+ * @param {string} okMessage
+ */
+function wireForm(form, endpoint, okMessage) {
+  if (!form) return;
+
+  const status = form.querySelector('.form-status');
+  const submit = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    status.className = 'form-status';
+    status.textContent = '';
+    form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+
+    if (!form.checkValidity()) {
+      form.querySelectorAll(':invalid').forEach((el) => el.setAttribute('aria-invalid', 'true'));
+      status.className = 'form-status error';
+      status.textContent = 'Revisa los campos marcados: faltan datos obligatorios o el formato no es correcto.';
+      form.reportValidity();
+      return;
+    }
+
+    const payload = Object.fromEntries(new FormData(form).entries());
+    submit.disabled = true;
+    submit.setAttribute('aria-busy', 'true');
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || data.ok === false) {
+        form.querySelectorAll(':invalid').forEach((el) => el.setAttribute('aria-invalid', 'true'));
+        status.className = 'form-status error';
+        status.textContent = (data.errors || ['No se pudo enviar. Inténtalo de nuevo.']).join(' ');
+        return;
+      }
+
+      status.className = 'form-status ok';
+      status.textContent = data.mensaje || okMessage;
+      form.reset();
+    } catch (error) {
+      status.className = 'form-status error';
+      status.textContent = 'No hay conexión con el servidor. Inténtalo de nuevo en unos minutos.';
+    } finally {
+      submit.disabled = false;
+      submit.removeAttribute('aria-busy');
+    }
+  });
+}
+
+wireForm(document.querySelector('#formVisita'), '/api/visitas', 'Solicitud enviada. Te llamaremos para confirmar la visita.');
+wireForm(document.querySelector('#formContacto'), '/api/contacto', 'Mensaje enviado. Te responderemos lo antes posible.');
+
+// --- Cargar vídeos desde la API -------------------------------------------
+async function loadVideos() {
+  const videoGrid = document.getElementById('videoGrid');
+  if (!videoGrid) return;
+
+  try {
+    const response = await fetch('/api/videos');
+    const data = await response.json();
+
+    if (!data.ok || data.videos.length === 0) {
+      videoGrid.innerHTML = '<div class="loading">No hay vídeos disponibles.</div>';
+      return;
+    }
+
+    const videoCards = data.videos.map(v => `
+      <figure class="video-card">
+        <div class="video-frame" data-video="${v.video_id}" data-title="${v.titulo}">
+          <span class="video-poster" aria-hidden="true"><span class="video-play"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span></span>
+          <figcaption class="video-title">${escapeHtml(v.titulo)}</figcaption>
+        </div>
+        <figcaption>${escapeHtml(v.titulo)}</figcaption>
+      </figure>
+    `).join('');
+
+    videoGrid.innerHTML = videoCards;
+
+    // Re-inicializar los eventos de click para los nuevos videos
+    initVideoFrames();
+  } catch (error) {
+    videoGrid.innerHTML = '<div class="loading">Error al cargar vídeos. Inténtalo de nuevo.</div>';
+    console.error('Error cargando vídeos:', error);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function initVideoFrames() {
+  document.querySelectorAll('.video-frame').forEach((frame) => {
+    frame.setAttribute('role', 'button');
+    frame.setAttribute('tabindex', '0');
+    frame.setAttribute('aria-label', `Reproducir vídeo: ${frame.dataset.title || 'vídeo'}`);
+
+    const play = () => {
+      const id = frame.dataset.video;
+      if (id) openVideo(id);
+    };
+
+    frame.addEventListener('click', play);
+    frame.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        play();
+      }
+    });
+  });
+}
+
+// Cargar vídeos al iniciar la página
+document.addEventListener('DOMContentLoaded', loadVideos);
 
 // --- PWA: registro del service worker ---
 if ('serviceWorker' in navigator) {

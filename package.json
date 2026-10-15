@@ -5,9 +5,12 @@
   "description": "Sitio web de Residencia Los Olivos",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "db:init": "node db/init.js"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "mysql2": "^3.24.5"
   }
 }

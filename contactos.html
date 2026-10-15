@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - Consultas | Residencia Los Olivos</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f7f6f0;
+      color: #2d2d2d;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: #1a1a1a;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    th,
+    td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    th {
+      background: #f5f5f0;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #555;
+    }
+
+    tr:hover {
+      background: #fafaf8;
+    }
+
+    .leido {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .leido-si {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .leido-no {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 3rem;
+      color: #888;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar label {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .toolbar select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #d5d5d0;
+      font-family: inherit;
+      font-size: 0.85rem;
+      background: white;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .btn-outline {
+      background: white;
+      color: #2d5a27;
+      border: 1px solid #2d5a27;
+    }
+
+    .btn-outline:hover {
+      background: #f5f5f0;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-editar {
+      background: #eef4ee;
+      color: #2d5a27;
+      border: 1px solid #c9dcc9;
+    }
+
+    .btn-editar:hover {
+      background: #dfeadf;
+    }
+
+    .btn-borrar {
+      background: #fdf0f0;
+      color: #a33;
+      border: 1px solid #eac9c9;
+    }
+
+    .btn-borrar:hover {
+      background: #f7dfdf;
+    }
+
+    .btn-leer {
+      background: #eef2f7;
+      color: #2c5282;
+      border: 1px solid #c9d8ea;
+    }
+
+    .btn-leer:hover {
+      background: #dfe9f3;
+    }
+
+    .acciones {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #2d5a27;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.visible {
+      opacity: 1;
+    }
+
+    .toast.error {
+      background: #a33;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 50;
+    }
+
+    .modal-overlay.abierto {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: #1a1a1a;
+    }
+
+    .modal .field {
+      margin-bottom: 0.9rem;
+    }
+
+    .modal label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .modal input,
+    .modal textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #d5d5d0;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .modal input:focus,
+    .modal textarea:focus {
+      outline: 2px solid #2d5a27;
+      border-color: #2d5a27;
+    }
+
+    .modal-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 1.25rem;
+    }
+
+    .btn-guardar {
+      background: #2d5a27;
+      color: white;
+    }
+
+    .btn-guardar:hover {
+      background: #234a1f;
+    }
+
+    .btn-cancelar {
+      background: #f0f0ec;
+      color: #555;
+    }
+
+    .btn-cancelar:hover {
+      background: #e4e4df;
+    }
+
+    .error-form {
+      color: #a33;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .modal-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header-actions">
+      <h1>Consultas recibidas</h1>
+      <div style="display: flex; gap: 10px;">
+        <a href="/admin.html" class="btn btn-outline">Ver visitas</a>
+        <a href="/" class="btn btn-outline">← Volver al sitio</a>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label for="filtroLeido">Filtrar:</label>
+      <select id="filtroLeido">
+        <option value="">Todas</option>
+        <option value="no">No leídas</option>
+        <option value="si">Leídas</option>
+      </select>
+      <span id="contador" style="font-size: 0.85rem; color: #888;"></span>
+    </div>
+
+    <div id="content">
+      <div class="loading">Cargando consultas...</div>
+    </div>
+  </div>
+
+  <!-- Modal de edición -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <h2 id="modalTitulo">Editar consulta #<span id="modalId"></span></h2>
+      <form id="formEditar" novalidate>
+        <div class="field">
+          <label for="ed-nombre">Nombre y apellidos *</label>
+          <input id="ed-nombre" name="nombre" type="text" required maxlength="120">
+        </div>
+        <div class="modal-row">
+          <div class="field">
+            <label for="ed-email">Email *</label>
+            <input id="ed-email" name="email" type="email" required maxlength="160">
+          </div>
+          <div class="field">
+            <label for="ed-telefono">Teléfono</label>
+            <input id="ed-telefono" name="telefono" type="tel" maxlength="30">
+          </div>
+        </div>
+        <div class="field">
+          <label for="ed-asunto">Asunto *</label>
+          <input id="ed-asunto" name="asunto" type="text" required maxlength="160">
+        </div>
+        <div class="field">
+          <label for="ed-mensaje">Mensaje *</label>
+          <textarea id="ed-mensaje" name="mensaje" rows="4" required maxlength="4000"></textarea>
+        </div>
+        <div class="field">
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+            <input type="checkbox" id="ed-leido" name="leido" style="width: auto;">
+            Marcar como leída
+          </label>
+        </div>
+        <p class="error-form" id="modalError" role="alert"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-cancelar" id="btnCancelar">Cancelar</button>
+          <button type="submit" class="btn btn-guardar">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    let contactos = [];
+
+    const content = document.getElementById('content');
+    const filtroLeido = document.getElementById('filtroLeido');
+    const contador = document.getElementById('contador');
+    const toast = document.getElementById('toast');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const formEditar = document.getElementById('formEditar');
+    const modalError = document.getElementById('modalError');
+
+    function mostrarToast(texto, esError = false) {
+      toast.textContent = texto;
+      toast.className = 'toast visible' + (esError ? ' error' : '');
+      setTimeout(() => toast.classList.remove('visible'), 3000);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text == null ? '' : String(text);
+      return div.innerHTML;
+    }
+
+    async function loadContactos() {
+      try {
+        const response = await fetch('/api/contactos');
+        const data = await response.json();
+
+        if (!data.ok) {
+          content.innerHTML = '<div class="empty">Error al cargar las consultas.</div>';
+          return;
+        }
+
+        contactos = data.contactos || [];
+        render();
+      } catch (error) {
+        content.innerHTML = '<div class="empty">Error al cargar las consultas. Inténtalo de nuevo.</div>';
+        console.error(error);
+      }
+    }
+
+    function render() {
+      const filtro = filtroLeido.value;
+      const lista = filtro
+        ? contactos.filter(c => filtro === 'si' ? c.leido : !c.leido)
+        : contactos;
+
+      contador.textContent = lista.length === contactos.length
+        ? `${contactos.length} consulta(s)`
+        : `${lista.length} de ${contactos.length} consulta(s)`;
+
+      if (lista.length === 0) {
+        content.innerHTML = '<div class="empty">No hay consultas registradas.</div>';
+        return;
+      }
+
+      const rows = lista.map(c => `
+        <tr>
+          <td>#${c.id}</td>
+          <td><strong>${escapeHtml(c.nombre)}</strong></td>
+          <td>${escapeHtml(c.email)}</td>
+          <td>${escapeHtml(c.telefono || '-')}</td>
+          <td>${escapeHtml(c.asunto)}</td>
+          <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(c.mensaje)}">${escapeHtml(c.mensaje)}</td>
+          <td><span class="leido leido-${c.leido ? 'si' : 'no'}">${c.leido ? 'Leído' : 'No leído'}</span></td>
+          <td style="font-size: 0.8rem; color: #666;">${new Date(c.creado_en).toLocaleString('es-ES')}</td>
+          <td>
+            <div class="acciones">
+              <button type="button" class="btn btn-sm btn-leer" data-leer="${c.id}">${c.leido ? 'Marcar no leída' : 'Marcar leída'}</button>
+              <button type="button" class="btn btn-sm btn-editar" data-editar="${c.id}">Editar</button>
+              <button type="button" class="btn btn-sm btn-borrar" data-borrar="${c.id}">Borrar</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      content.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Asunto</th>
+              <th>Mensaje</th>
+              <th>Estado</th>
+              <th>Creado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    async function toggleLeido(id) {
+      const c = contactos.find(c => String(c.id) === String(id));
+      if (!c) return;
+      const nuevo = c.leido ? 0 : 1;
+
+      try {
+        const response = await fetch(`/api/contactos/${id}/leido`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leido: nuevo }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error((data.errors || []).join(' '));
+        c.leido = nuevo;
+        render();
+        mostrarToast(`Consulta #${id} ${nuevo ? 'marcada como leída' : 'marcada como no leída'}.`);
+      } catch (error) {
+        mostrarToast('No se pudo actualizar.', true);
+        console.error(error);
+      }
+    }
+
+    function abrirModal(id) {
+      const c = contactos.find(c => String(c.id) === String(id));
+      if (!c) return;
+      document.getElementById('modalId').textContent = c.id;
+      formEditar.elements['nombre'].value = c.nombre || '';
+      formEditar.elements['email'].value = c.email || '';
+      formEditar.elements['telefono'].value = c.telefono || '';
+      formEditar.elements['asunto'].value = c.asunto || '';
+      formEditar.elements['mensaje'].value = c.mensaje || '';
+      formEditar.elements['leido'].checked = !!c.leido;
+      modalError.textContent = '';
+      formEditar.dataset.id = c.id;
+      modalOverlay.classList.add('abierto');
+      formEditar.elements['nombre'].focus();
+    }
+
+    function cerrarModal() {
+      modalOverlay.classList.remove('abierto');
+    }
+
+    formEditar.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const id = formEditar.dataset.id;
+      const fd = new FormData(formEditar);
+      const payload = Object.fromEntries(fd.entries());
+      payload.leido = fd.get('leido') ? 1 : 0;
+
+      if (!formEditar.checkValidity()) {
+        modalError.textContent = 'Revisa los campos obligatorios.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/contactos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error((data.errors || []).join(' '));
+
+        cerrarModal();
+        mostrarToast(`Consulta #${id} actualizada.`);
+        loadContactos();
+      } catch (error) {
+        modalError.textContent = error.message || 'No se pudo guardar.';
+      }
+    });
+
+    async function borrarContacto(id) {
+      const c = contactos.find(c => String(c.id) === String(id));
+      if (!confirm(`¿Eliminar la consulta de "${c ? c.nombre : 'id ' + id}"? Esta acción no se puede deshacer.`)) return;
+
+      try {
+        const response = await fetch(`/api/contactos/${id}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error((data.errors || []).join(' '));
+        mostrarToast(`Consulta #${id} eliminada.`);
+        loadContactos();
+      } catch (error) {
+        mostrarToast('No se pudo eliminar la consulta.', true);
+        console.error(error);
+      }
+    }
+
+    // Delegación de eventos para botones dinámicos
+    content.addEventListener('click', (event) => {
+      const btn = event.target.closest('button');
+      if (!btn) return;
+      if (btn.dataset.leer) toggleLeido(btn.dataset.leer);
+      else if (btn.dataset.editar) abrirModal(btn.dataset.editar);
+      else if (btn.dataset.borrar) borrarContacto(btn.dataset.borrar);
+    });
+
+    filtroLeido.addEventListener('change', render);
+    document.getElementById('btnCancelar').addEventListener('click', cerrarModal);
+    modalOverlay.addEventListener('click', (event) => {
+      if (event.target === modalOverlay) cerrarModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') cerrarModal();
+    });
+
+    loadContactos();
+  </script>
+</body>
+
+</html>
