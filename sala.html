@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Videollamada | Residencia Los Olivos</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="sala.css">
+  <!-- LiveKit client (build UMD): expone el global `LivekitClient`. -->
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+</head>
+
+<body>
+  <header class="sala-header">
+    <div class="sala-info">
+      <strong id="salaNombre">Videollamada</strong>
+      <span id="salaEstado" class="sala-estado" role="status" aria-live="polite">Preparando…</span>
+    </div>
+    <div class="sala-acciones-top">
+      <a href="llamadas.html" class="btn btn-outline">Mis salas</a>
+      <a href="historial.html" class="btn btn-outline">Historial</a>
+      <a href="index.html" class="btn btn-outline">Salir del sitio</a>
+    </div>
+  </header>
+
+  <!-- Pantallas de estado -->
+  <section id="pantallaEstado" class="pantalla-estado">
+    <div class="estado-caja">
+      <div class="spinner" id="spinner" aria-hidden="true"></div>
+      <h1 id="estadoTitulo">Conectando…</h1>
+      <p id="estadoTexto">Solicitando permiso para cámara y micrófono.</p>
+      <div id="estadoAcciones" class="estado-acciones"></div>
+    </div>
+  </section>
+
+  <!-- Llamada -->
+  <main id="pantallaLlamada" class="pantalla-llamada" hidden>
+    <div class="grid-video" id="gridVideo" aria-label="Participantes de la llamada">
+      <p class="estado-vacio" id="estadoVacio">Esperando a los demás participantes…</p>
+      <!-- Tile local. En pantallas grandes se muestra pequeño y flotante (CSS). -->
+      <div class="tile tile-local" id="tileLocal">
+        <video id="videoLocal" class="video-local" autoplay muted playsinline></video>
+        <div class="tile-avatar" id="localAvatar" hidden>Tú</div>
+        <div class="tile-etiqueta" id="localNombre">Tú</div>
+        <div class="tile-mudo" id="localMudo" hidden aria-label="Micrófono silenciado">🔇</div>
+      </div>
+    </div>
+
+    <div class="barra-controles" role="toolbar" aria-label="Controles de la llamada">
+      <button type="button" id="btnMicro" class="ctrl" aria-pressed="false" title="Silenciar micrófono">
+        <span class="ctrl-icono" aria-hidden="true">🎤</span>
+        <span class="ctrl-texto" id="txtMicro">Silenciar</span>
+      </button>
+      <button type="button" id="btnCamara" class="ctrl" aria-pressed="false" title="Apagar cámara">
+        <span class="ctrl-icono" aria-hidden="true">📷</span>
+        <span class="ctrl-texto" id="txtCamara">Apagar cámara</span>
+      </button>
+      <button type="button" id="btnPantalla" class="ctrl" aria-pressed="false" title="Compartir pantalla">
+        <span class="ctrl-icono" aria-hidden="true">🖥️</span>
+        <span class="ctrl-texto" id="txtPantalla">Compartir</span>
+      </button>
+      <button type="button" id="btnColgar" class="ctrl ctrl-salir" title="Colgar">
+        <span class="ctrl-icono" aria-hidden="true">📞</span>
+        <span class="ctrl-texto">Colgar</span>
+      </button>
+    </div>
+  </main>
+
+  <script src="sala.js"></script>
+</body>
+
+</html>

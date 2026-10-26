@@ -333,6 +333,9 @@
       <h1>Solicitudes de visita</h1>
       <div style="display: flex; gap: 10px;">
         <a href="/contactos.html" class="btn btn-outline">Ver consultas</a>
+        <a href="/llamadas.html" class="btn btn-outline">Videollamadas</a>
+        <a href="/historial.html" class="btn btn-outline">Historial</a>
+        <button id="logoutBtn" class="btn btn-outline">Cerrar sesión</button>
         <a href="/" class="btn btn-outline">← Volver al sitio</a>
       </div>
     </div>
@@ -441,7 +444,23 @@
       return div.innerHTML;
     }
 
+    async function checkAuth() {
+      try {
+        // `no-store` evita que el navegador/sesión sirva una respuesta vieja de /api/auth/me.
+        const response = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (!response.ok) {
+          window.location.href = '/login.html';
+          return false;
+        }
+        return true;
+      } catch (error) {
+        window.location.href = '/login.html';
+        return false;
+      }
+    }
+
     async function loadVisitas() {
+
       try {
         const response = await fetch('/api/visitas');
         const data = await response.json();
@@ -619,7 +638,23 @@
       if (event.key === 'Escape') cerrarModal();
     });
 
-    loadVisitas();
+    // Cerrar sesión
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/login.html';
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        window.location.href = '/login.html';
+      }
+    });
+
+    // Verificar autenticación antes de cargar
+    (async () => {
+      if (await checkAuth()) {
+        loadVisitas();
+      }
+    })();
   </script>
 </body>
 

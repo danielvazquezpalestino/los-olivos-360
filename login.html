@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión | Residencia Los Olivos</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: #f7f6f0; color: #2d2d2d; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .login-container { max-width: 400px; width: 100%; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #1a1a1a; }
+    .subtitle { color: #666; margin-bottom: 2rem; font-size: 0.9rem; }
+    .field { margin-bottom: 1.25rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
+    input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; font-family: inherit; }
+    input:focus { outline: none; border-color: #2d5a27; }
+    .btn { width: 100%; padding: 0.875rem; background: #2d5a27; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: #234a1f; }
+    .btn:disabled { background: #999; cursor: not-allowed; }
+    .error { background: #f8d7da; color: #721c24; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; }
+    .success { background: #d4edda; color: #155724; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; }
+    .msg:empty { display: none; }
+    .back-link { text-align: center; margin-top: 1.5rem; }
+    .back-link a { color: #2d5a27; text-decoration: none; font-size: 0.9rem; }
+    .back-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Iniciar sesión</h1>
+    <p class="subtitle">Panel de administración</p>
+    
+    <div id="status" class="msg" role="status" aria-live="polite"></div>
+    
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required autocomplete="email">
+      </div>
+      
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+      
+      <button type="submit" class="btn" id="submitBtn">Iniciar sesión</button>
+    </form>
+    
+
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const status = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Si ya hay una sesión válida, no tiene sentido pedir credenciales otra vez.
+    (async () => {
+      try {
+        const response = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (response.ok) window.location.replace('/index.html');
+      } catch (error) {
+        // Sin conexión o sin sesión: se queda en el formulario.
+      }
+    })();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      status.innerHTML = '';
+      submitBtn.disabled = true;
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+          status.innerHTML = '<div class="success">¡Sesión iniciada! Redirigiendo...</div>';
+          setTimeout(() => {
+            window.location.href = '/index.html';
+          }, 1000);
+        } else {
+          status.innerHTML = '<div class="error">' + (result.errors || ['Error al iniciar sesión']).join('<br>') + '</div>';
+          submitBtn.disabled = false;
+        }
+      } catch (error) {
+        status.innerHTML = '<div class="error">Error de conexión. Inténtalo de nuevo.</div>';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

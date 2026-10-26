@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Videollamadas | Residencia Los Olivos</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="llamadas.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header-actions">
+      <h1>Videollamadas</h1>
+      <div class="acciones-top">
+        <a href="index.html" class="btn btn-outline">← Volver al inicio</a>
+        <a href="historial.html" class="btn btn-outline">Historial</a>
+        <button id="logoutBtn" class="btn btn-outline" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <p class="nota">
+      Crea una videollamada, marca a quién invitas y comparte el enlace. Sólo las personas
+      invitadas pueden entrar en la sala.
+    </p>
+
+    <div class="columnas">
+      <!-- Crear una videollamada -->
+      <section class="card" aria-labelledby="nueva-titulo">
+        <h2 id="nueva-titulo">Nueva videollamada</h2>
+
+        <form id="formNueva" novalidate>
+          <div class="field">
+            <label for="sala-nombre">Nombre de la sala</label>
+            <div class="input-grupo">
+              <input id="sala-nombre" name="name" type="text" maxlength="64" required placeholder="reunion-familia"
+                autocomplete="off" pattern="[a-z0-9][a-z0-9\-]{2,63}">
+              <button type="button" class="btn btn-outline btn-sm" id="btnAzar" title="Generar un nombre automático">
+                Generar
+              </button>
+            </div>
+            <p class="ayuda">Minúsculas, números y guiones (3-64 caracteres).</p>
+          </div>
+
+          <fieldset class="field personas">
+            <legend>¿A quién invitas?</legend>
+            <label class="buscador">
+              <span class="sr-only">Buscar persona</span>
+              <input id="buscarPersona" type="search" placeholder="Buscar por nombre o email…" autocomplete="off">
+            </label>
+            <div id="listaPersonas" class="lista-personas" role="group" aria-live="polite">
+              <p class="vacio">Cargando personas…</p>
+            </div>
+            <p class="ayuda" id="contadorPersonas"></p>
+          </fieldset>
+
+          <button type="submit" class="btn btn-primario btn-lg" id="btnCrear">
+            Crear videollamada y entrar
+          </button>
+          <p class="estado-form" id="estadoForm" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <!-- Mis salas -->
+      <section class="card" aria-labelledby="mis-titulo">
+        <h2 id="mis-titulo">Mis salas</h2>
+        <div id="listaSalas" class="lista-salas">
+          <p class="vacio">Cargando salas…</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Aviso tras crear: enlace para compartir -->
+  <div class="modal-overlay" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+      <h2 id="modalTitulo">Videollamada creada</h2>
+      <p class="detalle-linea">Comparte este enlace con las personas invitadas:</p>
+      <div class="copiar">
+        <input id="enlace" type="text" readonly aria-label="Enlace de la videollamada">
+        <button type="button" class="btn btn-outline btn-sm" id="btnCopiar">Copiar</button>
+      </div>
+      <p class="detalle-linea" id="detalleInvitados"></p>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-outline" id="btnCerrarModal">Seguir aquí</button>
+        <a class="btn btn-primario" id="btnEntrarAhora" href="#">Entrar ahora</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="llamadas.js"></script>
+</body>
+
+</html>

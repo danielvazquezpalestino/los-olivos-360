@@ -1,19 +1,31 @@
-const menuToggle = document.querySelector('#menuToggle');
+// La clase real del botón es .menu-toggle (no existe #menuToggle en index.html).
+// Se usa el id si está y, si no, la clase, para que la home nunca se rompa.
+const menuToggle = document.querySelector('#menuToggle, .menu-toggle');
 const sidebar = document.querySelector('#sidebar');
 
-menuToggle.addEventListener('click', () => {
-  const isOpen = sidebar.classList.toggle('open');
-  menuToggle.setAttribute('aria-expanded', String(isOpen));
-  menuToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
-});
-
-sidebar.querySelectorAll('a').forEach((link) => {
-  link.addEventListener('click', () => {
-    sidebar.classList.remove('open');
+function closeMenu() {
+  if (sidebar) sidebar.classList.remove('open');
+  if (menuToggle) {
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-label', 'Abrir menú');
+  }
+}
+
+if (menuToggle && sidebar) {
+  menuToggle.addEventListener('click', () => {
+    const isOpen = sidebar.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
+    menuToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
   });
-});
+
+  sidebar.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && sidebar.classList.contains('open')) closeMenu();
+  });
+}
 
 // --- Vídeos: lightbox accesible con iframe de YouTube ---
 const VIDEO_BASE = 'https://www.youtube-nocookie.com/embed/';
@@ -117,6 +129,8 @@ function wireForm(form, endpoint, okMessage) {
   });
 }
 
+// wireForm ya ignora formularios ausentes: las páginas de administración
+// cargan este mismo script y no tienen estos formularios.
 wireForm(document.querySelector('#formVisita'), '/api/visitas', 'Solicitud enviada. Te llamaremos para confirmar la visita.');
 wireForm(document.querySelector('#formContacto'), '/api/contacto', 'Mensaje enviado. Te responderemos lo antes posible.');
 
@@ -181,7 +195,7 @@ function initVideoFrames() {
   });
 }
 
-// Cargar vídeos al iniciar la página
+// Cargar vídeos al iniciar la página (las páginas de admin no tienen la sección)
 document.addEventListener('DOMContentLoaded', loadVideos);
 
 // --- PWA: registro del service worker ---
